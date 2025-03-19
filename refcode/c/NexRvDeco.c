@@ -621,7 +621,7 @@ int NexusDeco(FILE *f, int disp)
       if (fldSize & 0x80)
       {
         // Size of this field is defined by parameter ...
-        fldSize = 2;
+        fldSize = conf_nSrc;
       }
       if (fldBits < fldSize)
       {

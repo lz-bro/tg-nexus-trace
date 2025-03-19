@@ -34,6 +34,8 @@
 // Decoder works on two files and dumper on first file
 extern FILE *fNex; // Nexus messages (binary bytes)
 
+extern int conf_nSrc;   // Number of source bits
+
 // Dump all Nexus messages (from 'fNex' file)
 //  disp  - display options bit-mask (1-packets, 2-only TCODE+names, 4-summary)
 int NexusDump(FILE *f, int disp)
@@ -142,13 +144,13 @@ int NexusDump(FILE *f, int disp)
       if (fldSize & 0x80)
       {
         // Size of this field is defined by parameter ...
-        fldSize = 2;
+        fldSize = conf_nSrc;
       }
       if (fldBits < fldSize)
       {
         break;  // Not enough bits for this field
       }
-      if (disp & 1) fprintf(f, " %s[%d]=0x%lX", nexusMsgDef[fldDef].name, fldSize, fldVal & ((((Nexus_TypeField)1) << fldSize) - 1));
+      if ((disp & 1) && (fldSize > 0)) fprintf(f, " %s[%d]=0x%lX", nexusMsgDef[fldDef].name, fldSize, fldVal & ((((Nexus_TypeField)1) << fldSize) - 1));
       fldDef++;
       fldVal >>= fldSize;
       fldBits -= fldSize;

@@ -50,6 +50,7 @@ extern int ConvAddInfo(FILE *fIn, FILE *fOut, FILE *fComp);
 extern int ConvRtlTrace(FILE *fIn, FILE *fOut);
 
 int conf_Repeat = 0;        // 0=no repeat, 1=releat branch only, 2=repeat history
+int conf_nSrc = 0;          // 0=no source field
 
 #if 1 // Callstack related
 
@@ -166,8 +167,8 @@ static int usage(const char *err)
   printf("\n");
   printf("NexRv v1.0.0 (2025/01/02)\n");
   printf("Usage:\n");
-  printf("  NexRv -dump <nex> [<dump>] [-msg|-none] - dump Nexus file\n");
-  printf("  NexRv -deco <nex> -pcinfo <info> -pcout <pco> [-stat|-full|-all|-msg|-none] - decode trace\n");
+  printf("  NexRv -dump <nex> [<dump>] [-nsrc <num>] [-msg|-none] - dump Nexus file\n");
+  printf("  NexRv -deco <nex> -pcinfo <info> -pcout <pco> [-nsrc <num>] [-stat|-full|-all|-msg|-none] - decode trace\n");
   printf("  NexRv -enco <pcseq> -nex <nex> [-nobhm|-norbm|-cs [<cs>]|-rpt <m>] [-stat|-full|-all|-msg|-none] - encode trace \n");
   printf("  NexRv -conv -objd <objd> -pcinfo <pci> - create <pci> from objdump -d output <objd>\n");
   printf("  NexRv -conv -pcinfo <pci> -pconly <pco> -pcseq <pcs> - convert <pco> to <pcs> using <pci>\n");
@@ -181,6 +182,7 @@ static int usage(const char *err)
   printf("  -cs [<cs>]                  - enable call-stack level <cs> (0=none, 8 is default)\n");
   printf("  -rpt [<m>]                  - enable repeat detection (0=none,1=repeat branch,2=repeat history)\n");
   printf("  -stat|-full|-all|-msg|-none - verbose level\n");
+  printf("  -nsrc [<num>]               - number of source bits <num> (default no source field)\n");
 
 #if 0
   printf("sizeof(unsigned int) = %d\n",       sizeof(unsigned int));
@@ -220,6 +222,12 @@ int main(int argc, char *argv[])
       fDump = fopen(argv[3], "wt");
       if (fDump == NULL) return error("Cannot create DUMP file");
       opt = 4;
+    }
+
+    if (argc > opt + 1 && strcmp(argv[opt], "-nsrc") == 0 && sscanf(argv[opt+1], "%d", &conf_nSrc) == 1)
+    {
+      printf("NexRv/nSrc: %d\n", conf_nSrc);
+      opt += 2;
     }
 
     int disp = 4 | 2 | 1; // Default (all)
@@ -477,6 +485,12 @@ int main(int argc, char *argv[])
     FILE *fOut = fopen(argv[6], "wt");
     if (fOut == NULL) return error("Cannot create PCOUT file");
 
+    int opt = 7;
+    if (argc > opt + 1 && strcmp(argv[opt], "-nsrc") == 0 && sscanf(argv[opt+1], "%d", &conf_nSrc) == 1)
+    {
+      printf("NexRv/nSrc: %d\n", conf_nSrc);
+      opt += 2;
+    }
 
     int disp = 4; // Default (-stat)
     if (argc > 7 && strcmp(argv[7], "-all") == 0)   disp = 4 | 2 | 1; // All

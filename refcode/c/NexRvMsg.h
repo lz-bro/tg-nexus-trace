@@ -44,16 +44,19 @@ static struct NEXM_MSGDEF_STRU {
 } nexusMsgDef[] = {
 
   NEXM_BEG(Ownership, 2),
+    NEXM_FLD_PAR(SRC),
     NEXM_VAR(PROCESS),
     NEXM_VAR(TSTAMP),
   NEXM_END(),
 
   NEXM_BEG(DirectBranch, 3),
+    NEXM_FLD_PAR(SRC),
     NEXM_VAR(ICNT),
     NEXM_VAR(TSTAMP),
   NEXM_END(),
 
   NEXM_BEG(IndirectBranch, 4),
+    NEXM_FLD_PAR(SRC),
     NEXM_FLD(BTYPE, 2),
     NEXM_VAR(ICNT),
     NEXM_ADR(UADDR),
@@ -61,12 +64,14 @@ static struct NEXM_MSGDEF_STRU {
   NEXM_END(),
 
   NEXM_BEG(Error, 8),
+    NEXM_FLD_PAR(SRC),
     NEXM_FLD(ETYPE, 4),
     NEXM_VAR(PAD),
     NEXM_VAR(TSTAMP),
   NEXM_END(),
 
   NEXM_BEG(ProgTraceSync, 9),
+    NEXM_FLD_PAR(SRC),
     NEXM_FLD(SYNC, 4),
     NEXM_VAR(ICNT),
     NEXM_ADR(FADDR),
@@ -74,6 +79,7 @@ static struct NEXM_MSGDEF_STRU {
   NEXM_END(),
 
   NEXM_BEG(DirectBranchSync, 11),
+    NEXM_FLD_PAR(SRC),
     NEXM_FLD(SYNC, 4),
     NEXM_VAR(ICNT),
     NEXM_ADR(FADDR),
@@ -81,6 +87,7 @@ static struct NEXM_MSGDEF_STRU {
   NEXM_END(),
 
   NEXM_BEG(IndirectBranchSync, 12),
+    NEXM_FLD_PAR(SRC),
     NEXM_FLD(SYNC, 4),
     NEXM_FLD(BTYPE, 2),
     NEXM_VAR(ICNT),
@@ -89,6 +96,7 @@ static struct NEXM_MSGDEF_STRU {
   NEXM_END(),
 
   NEXM_BEG(ResourceFull, 27),
+    NEXM_FLD_PAR(SRC),
     NEXM_FLD(RCODE, 4),
     NEXM_VAR(RDATA),
     NEXM_VAR(HREPEAT),
@@ -96,6 +104,7 @@ static struct NEXM_MSGDEF_STRU {
   NEXM_END(),
 
   NEXM_BEG(IndirectBranchHist, 28),
+    NEXM_FLD_PAR(SRC),
     NEXM_FLD(BTYPE, 2),
     NEXM_VAR(ICNT),
     NEXM_ADR(UADDR),
@@ -104,6 +113,7 @@ static struct NEXM_MSGDEF_STRU {
   NEXM_END(),
 
   NEXM_BEG(IndirectBranchHistSync, 29),
+    NEXM_FLD_PAR(SRC),
     NEXM_FLD(SYNC, 4),
     NEXM_FLD(BTYPE, 2),
     // NEXM_FLD(CANCEL, 1),
@@ -114,11 +124,13 @@ static struct NEXM_MSGDEF_STRU {
   NEXM_END(),
 
   NEXM_BEG(RepeatBranch, 30),
+    NEXM_FLD_PAR(SRC),
     NEXM_VAR(BCNT),
     NEXM_VAR(TSTAMP),
   NEXM_END(),
 
   NEXM_BEG(ProgTraceCorrelation, 33),
+    NEXM_FLD_PAR(SRC),
     NEXM_FLD(EVCODE, 4),
     NEXM_FLD(CDF, 2),
     NEXM_VAR(ICNT),
