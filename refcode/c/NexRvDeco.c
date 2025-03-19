@@ -296,6 +296,9 @@ static int MsgHandle(FILE *f, int disp)
 
   switch (TCODE)
   {
+    case NEXUS_TCODE_Ownership:
+      break;
+
     case NEXUS_TCODE_DirectBranch:
       {
         NEX_FLDGET(ICNT);
