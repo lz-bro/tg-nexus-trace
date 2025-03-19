@@ -421,5 +421,37 @@ static int ConvBin4(FILE *fIn, FILE *fOut)
   return nWr;
 }
 
+int ConvHex(FILE *fIn, FILE *fOut)
+{
+  char line[1000];
+
+  int nInstr = 0;
+  while (fgets(line, sizeof(line), fIn) != NULL)
+  {
+    char *end = strpbrk(line, "\r\n");
+    if (end) *end = '\0';
+
+    if (strlen(line) > 8)
+    {
+      printf("ERROR: Invalid length: %s\n", line);
+      return -2;
+    }
+
+    char *p;
+    uint32_t num = strtoul(line, &p, 16);
+    if (*p != '\0')
+    {
+      printf("ERROR: Invalid hex: %s\n", line);
+      return -1;
+    }
+
+    fwrite(&num, sizeof(num), 1, fOut);
+
+    nInstr++;
+  }
+
+  return nInstr;
+}
+
 //****************************************************************************
 // End of NexRvConv.c file

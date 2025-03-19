@@ -48,6 +48,7 @@ extern int ExtProcess(int argc, char *argv[]);
 extern int ConvGnuObjdump(FILE *fObjd, FILE *fPcInfo);
 extern int ConvAddInfo(FILE *fIn, FILE *fOut, FILE *fComp);
 extern int ConvRtlTrace(FILE *fIn, FILE *fOut);
+extern int ConvHex(FILE *fIn, FILE *fOut);
 
 int conf_Repeat = 0;        // 0=no repeat, 1=releat branch only, 2=repeat history
 int conf_nSrc = 0;          // 0=no source field
@@ -174,6 +175,7 @@ static int usage(const char *err)
   printf("  NexRv -conv -objd <objd> -pcinfo <pci> - create <pci> from objdump -d output <objd>\n");
   printf("  NexRv -conv -pcinfo <pci> -pconly <pco> -pcseq <pcs> - convert <pco> to <pcs> using <pci>\n");
   printf("  NexRv -conv -rtl <rtl> -pconly <pco> -  create <pco> file from <rtl> trace file\n");
+  printf("  NexRv -conv -hex <hex> -bin <bin> - convert <hex> to <bin>\n");
   printf("  NexRv -diff -pcseq <pcs> -pcout <pco> - compare <pcs> with <pco>\n");
 #if WITH_EXT
   printf("  NexRv -ext ... - extra processing (use -ext only to display extra usage)\n");
@@ -315,6 +317,27 @@ int main(int argc, char *argv[])
         ret = ConvRtlTrace(rtlFile, pcoFile);
         fclose(pcoFile);
         fclose(rtlFile);
+      }
+    }
+    else
+    if (argc == 6 && strcmp(argv[2], "-hex") == 0)
+    {
+      // -conv -hex <hex> -bin <bin>
+      if (strcmp(argv[4], "-bin") == 0)
+      {
+        // Syntax correct - open all files
+        err = NULL;
+
+        FILE *hexFile = fopen(argv[3], "rt");
+        if (hexFile == NULL) return error("Cannot open HEX file");
+
+        FILE *binFile = fopen(argv[5], "wt");
+        if (binFile == NULL) return error("Cannot create BINARY file");
+
+        // Run conversion
+        ret = ConvHex(hexFile, binFile);
+        fclose(hexFile);
+        fclose(binFile);
       }
     }
 
