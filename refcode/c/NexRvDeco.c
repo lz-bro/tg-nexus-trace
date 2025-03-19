@@ -36,6 +36,7 @@
 extern FILE *fNex;      // Nexus messages (binary bytes)
 
 extern int conf_nSrc;   // Number of source bits
+extern int conf_srcid;  // a specific hart
 
 #if 1 // Callstack related
 extern int conf_CallStack;
@@ -265,8 +266,6 @@ static int NexusFieldGet(const char *name, Nexus_TypeField *p)
   return 0;
 }
 
-unsigned int conf_src = 0;
-
 #define NEX_FLDGET(n) Nexus_TypeField n = 0; if (!NexusFieldGet(#n, &n)) return (-1)
 
 static const Nexus_TypeAddr msb_mask = ((Nexus_TypeAddr)1UL) << 49;
@@ -289,7 +288,7 @@ static int MsgHandle(FILE *f, int disp)
   int doneICNT;
   
   int TCODE = msgFields[0];
-  if (0 && msgFields[1] != conf_src)      // Is this SRC we are looking for
+  if (conf_srcid >= 0 && msgFields[1] != conf_srcid)      // Is this SRC we are looking for
   {
     return 0; // Ignore, but mark as handled
   }

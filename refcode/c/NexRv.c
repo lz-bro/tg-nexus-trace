@@ -51,6 +51,7 @@ extern int ConvRtlTrace(FILE *fIn, FILE *fOut);
 
 int conf_Repeat = 0;        // 0=no repeat, 1=releat branch only, 2=repeat history
 int conf_nSrc = 0;          // 0=no source field
+int conf_srcid = -1;        // -1=no marked hart
 
 #if 1 // Callstack related
 
@@ -168,7 +169,7 @@ static int usage(const char *err)
   printf("NexRv v1.0.0 (2025/01/02)\n");
   printf("Usage:\n");
   printf("  NexRv -dump <nex> [<dump>] [-nsrc <num>] [-msg|-none] - dump Nexus file\n");
-  printf("  NexRv -deco <nex> -pcinfo <info> -pcout <pco> [-nsrc <num>] [-stat|-full|-all|-msg|-none] - decode trace\n");
+  printf("  NexRv -deco <nex> -pcinfo <info> -pcout <pco> [-nsrc <num>] [-srcid <srcid>] [-stat|-full|-all|-msg|-none] - decode trace\n");
   printf("  NexRv -enco <pcseq> -nex <nex> [-nobhm|-norbm|-cs [<cs>]|-rpt <m>] [-stat|-full|-all|-msg|-none] - encode trace \n");
   printf("  NexRv -conv -objd <objd> -pcinfo <pci> - create <pci> from objdump -d output <objd>\n");
   printf("  NexRv -conv -pcinfo <pci> -pconly <pco> -pcseq <pcs> - convert <pco> to <pcs> using <pci>\n");
@@ -183,6 +184,7 @@ static int usage(const char *err)
   printf("  -rpt [<m>]                  - enable repeat detection (0=none,1=repeat branch,2=repeat history)\n");
   printf("  -stat|-full|-all|-msg|-none - verbose level\n");
   printf("  -nsrc [<num>]               - number of source bits <num> (default no source field)\n");
+  printf("  -srcid [<srcid>]            - enable decoding a specific hart\n");
 
 #if 0
   printf("sizeof(unsigned int) = %d\n",       sizeof(unsigned int));
@@ -492,12 +494,18 @@ int main(int argc, char *argv[])
       opt += 2;
     }
 
+    if (argc > opt + 1 && strcmp(argv[opt], "-srcid") == 0 && sscanf(argv[opt+1], "%d", &conf_srcid) == 1)
+    {
+      printf("NexRv/srcid: %d\n", conf_srcid);
+      opt += 2;
+    }
+
     int disp = 4; // Default (-stat)
-    if (argc > 7 && strcmp(argv[7], "-all") == 0)   disp = 4 | 2 | 1; // All
-    if (argc > 7 && strcmp(argv[7], "-msg") == 0)   disp = 4 | 2;     // TCODE and stat.
-    if (argc > 7 && strcmp(argv[7], "-stat") == 0)  disp = 4;         // Only statistics
-    if (argc > 7 && strcmp(argv[7], "-none") == 0)  disp = 0;         // Nothing
-    if (argc > 7 && strcmp(argv[7], "-full") == 0)  disp = 0xFF;      // Everything
+    if (argc > opt && strcmp(argv[opt], "-all") == 0)   disp = 4 | 2 | 1; // All
+    if (argc > opt && strcmp(argv[opt], "-msg") == 0)   disp = 4 | 2;     // TCODE and stat.
+    if (argc > opt && strcmp(argv[opt], "-stat") == 0)  disp = 4;         // Only statistics
+    if (argc > opt && strcmp(argv[opt], "-none") == 0)  disp = 0;         // Nothing
+    if (argc > opt && strcmp(argv[opt], "-full") == 0)  disp = 0xFF;      // Everything
 
     int ret = NexusDeco(fOut, disp);
     fclose(fOut);
