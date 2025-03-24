@@ -49,6 +49,7 @@ extern int ConvGnuObjdump(FILE *fObjd, FILE *fPcInfo);
 extern int ConvAddInfo(FILE *fIn, FILE *fOut, FILE *fComp);
 extern int ConvRtlTrace(FILE *fIn, FILE *fOut);
 extern int ConvHex(FILE *fIn, FILE *fOut);
+extern int ConvNex(FILE *fIn, FILE *fOut);
 
 int conf_Repeat = 0;        // 0=no repeat, 1=releat branch only, 2=repeat history
 int conf_nSrc = 0;          // 0=no source field
@@ -176,6 +177,7 @@ static int usage(const char *err)
   printf("  NexRv -conv -pcinfo <pci> -pconly <pco> -pcseq <pcs> - convert <pco> to <pcs> using <pci>\n");
   printf("  NexRv -conv -rtl <rtl> -pconly <pco> -  create <pco> file from <rtl> trace file\n");
   printf("  NexRv -conv -hex <hex> -bin <bin> - convert <hex> to <bin>\n");
+  printf("  NexRv -conv -ddr <ddr> -nex <nex> - convert <ddr> to <nex> - remove coresight formatter frame\n");
   printf("  NexRv -diff -pcseq <pcs> -pcout <pco> - compare <pcs> with <pco>\n");
 #if WITH_EXT
   printf("  NexRv -ext ... - extra processing (use -ext only to display extra usage)\n");
@@ -338,6 +340,27 @@ int main(int argc, char *argv[])
         ret = ConvHex(hexFile, binFile);
         fclose(hexFile);
         fclose(binFile);
+      }
+    }
+    else
+    if (argc == 6 && strcmp(argv[2], "-ddr") == 0)
+    {
+       // -conv -ddr <ddr> -nex <nex>
+      if (strcmp(argv[4], "-nex") == 0)
+      {
+        // Syntax correct - open all files
+        err = NULL;
+
+        FILE *ddrFile = fopen(argv[3], "rt");
+        if (ddrFile == NULL) return error("Cannot open DDR file");
+
+        FILE *nexFile = fopen(argv[5], "wt");
+        if (nexFile == NULL) return error("Cannot create BINARY file");
+
+        // Run conversion
+        ret = ConvNex(ddrFile, nexFile);
+        fclose(ddrFile);
+        fclose(nexFile);
       }
     }
 

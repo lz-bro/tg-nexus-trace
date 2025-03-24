@@ -453,5 +453,44 @@ int ConvHex(FILE *fIn, FILE *fOut)
   return nInstr;
 }
 
+int ConvNex(FILE *fIn, FILE *fOut)
+{
+  unsigned char buffer[16];
+  size_t bytesRead;
+  unsigned char dataByte, flagByte;
+  int isID;
+  uint8_t ID, data;
+
+  int nInstr = 0;
+  while ((bytesRead = fread(buffer, 1, 16, fIn)) > 0)
+  {
+    flagByte = buffer[15];
+    for (int i = 0; i < 15; i++)
+    {
+      dataByte = buffer[i];
+      if ((i & 1) == 0)
+      {
+        isID = dataByte & 1;
+        if (isID)
+        {
+          ID = dataByte >> 1;
+        }
+        else
+        {
+          data = dataByte | ((flagByte >> (i / 2)) & 1);
+          fwrite(&data, sizeof(data), 1, fOut);
+        }
+      }
+      else
+      {
+        data = dataByte;
+        fwrite(&data, sizeof(data), 1, fOut);
+      }
+    }
+     nInstr++;
+  }
+
+  return nInstr;
+}
 //****************************************************************************
 // End of NexRvConv.c file
