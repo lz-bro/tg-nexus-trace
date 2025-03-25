@@ -38,6 +38,69 @@
 // This is example line (<t> denotes TAB) - line must start from space!
 // 166:<t>0ba000ef          <t>jal<t>ra, 220 <c_ecall_handler_v2>
 
+#define MAX_ID 256  // a byte
+#define BUF_SIZE 32
+
+extern int conf_atid;
+
+typedef struct FORMATTER_DECODE_BUF
+{
+    unsigned char id;
+    unsigned char *buffer;
+    size_t size;
+    size_t capacity;
+} FORMATTER_DECODE_BUF;
+
+FORMATTER_DECODE_BUF* formatDecodeBuf[MAX_ID] = {NULL};
+
+void free_buffers() {
+  for (int i = 0; i < MAX_ID; i++) {
+      if (formatDecodeBuf[i] != NULL) {
+          free(formatDecodeBuf[i]->buffer);
+          free(formatDecodeBuf[i]);
+          formatDecodeBuf[i] = NULL;
+      }
+  }
+}
+
+FORMATTER_DECODE_BUF* get_buffer(unsigned char id)
+{
+  // If the current id already exists, return the corresponding formatDecodeBuf
+  if (formatDecodeBuf[id] != NULL) return formatDecodeBuf[id];
+
+  // Create a new formatDecodeBuf
+  FORMATTER_DECODE_BUF *buf = (FORMATTER_DECODE_BUF*)malloc(sizeof(FORMATTER_DECODE_BUF));
+  if (buf == NULL)
+  {
+    printf("ERROR: Failed to allocate memory for FORMATTER_DECODE_BUF.\n");
+    free_buffers();
+    return NULL;
+  }
+
+  buf->id = id;
+  buf->buffer = (unsigned char*)malloc(BUF_SIZE);
+  if (buf->buffer == NULL) {
+    printf("ERROR: Failed to allocate memory for buffer.\n");
+    free(buf);
+    free_buffers();
+    return NULL;
+  }
+
+  buf->size = 0;
+  buf->capacity = BUF_SIZE;
+
+  formatDecodeBuf[id] = buf;
+
+  return buf;
+}
+
+void write_buffer_to_file(FILE *fOut, FORMATTER_DECODE_BUF *buf) {
+    if (buf->size > 0) {
+        fwrite(buf->buffer, 1, buf->size, fOut);
+        buf->size = 0;
+    }
+}
+
 static Nexus_TypeAddr GetParAddr(const char *l)
 {
   // Skip over opcode (and '/t' following it)
@@ -459,10 +522,11 @@ int ConvNex(FILE *fIn, FILE *fOut)
   size_t bytesRead;
   unsigned char dataByte, flagByte;
   int isID;
-  uint8_t ID, data;
+  unsigned char curId, oldId, newId, data;
 
   int nInstr = 0;
-  while ((bytesRead = fread(buffer, 1, 16, fIn)) > 0)
+  // 16 bytes is output by coresight trace formatter
+  while ((bytesRead = fread(buffer, 1, 16, fIn)) == 16)
   {
     flagByte = buffer[15];
     for (int i = 0; i < 15; i++)
@@ -473,22 +537,62 @@ int ConvNex(FILE *fIn, FILE *fOut)
         isID = dataByte & 1;
         if (isID)
         {
-          ID = dataByte >> 1;
+          oldId = newId;
+          newId = dataByte >> 1; // get newId
+          if ((flagByte >> (i / 2)) & 1 == 1)
+          {
+            // 1 = next byte corresponds to the oldId
+            curId = oldId;
+          }
+          else
+          {
+            // 0 = next byte corresponds to the oldId
+            curId = newId;
+          }
         }
         else
         {
-          data = dataByte | ((flagByte >> (i / 2)) & 1);
-          fwrite(&data, sizeof(data), 1, fOut);
+          data = dataByte | ((flagByte >> (i / 2)) & 1); // get data when dataByte[0] is clear
         }
       }
       else
       {
+        isID = 0;
         data = dataByte;
-        fwrite(&data, sizeof(data), 1, fOut);
+      }
+
+      // handle data
+      if (!isID)
+      {
+        if (data == 0xFF)
+        {
+          if (curId == oldId) curId = newId;
+          continue; // skip idle byte
+        }
+        FORMATTER_DECODE_BUF *buf = get_buffer(curId);
+        if (buf == NULL) return -1;
+
+        if (buf->size >= buf->capacity)
+        {
+          buf->capacity *= 2; // expand buffer
+          buf->buffer = realloc(buf->buffer, buf->capacity);
+          if (buf->buffer == NULL)
+          {
+            printf("ERROR: Failed to reallocate memory for buffer");
+            free_buffers();
+            return -2;
+          }
+        }
+
+        buf->buffer[buf->size++] = data; // write to buffer
+        // This is end byte for NEXUS MSG
+        if ((data & 3) == 0x3 && (conf_atid == 0 || conf_atid == curId)) write_buffer_to_file(fOut, buf);
+        if (curId == oldId) curId = newId;
       }
     }
-     nInstr++;
+    nInstr++;
   }
+  free_buffers();
 
   return nInstr;
 }

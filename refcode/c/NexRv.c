@@ -54,6 +54,7 @@ extern int ConvNex(FILE *fIn, FILE *fOut);
 int conf_Repeat = 0;        // 0=no repeat, 1=releat branch only, 2=repeat history
 int conf_nSrc = 0;          // 0=no source field
 int conf_srcid = -1;        // -1=no marked hart
+int conf_atid = 0;          // >0, decoded the coresight formatter of the conf_atid
 
 #if 1 // Callstack related
 
@@ -177,7 +178,7 @@ static int usage(const char *err)
   printf("  NexRv -conv -pcinfo <pci> -pconly <pco> -pcseq <pcs> - convert <pco> to <pcs> using <pci>\n");
   printf("  NexRv -conv -rtl <rtl> -pconly <pco> -  create <pco> file from <rtl> trace file\n");
   printf("  NexRv -conv -hex <hex> -bin <bin> - convert <hex> to <bin>\n");
-  printf("  NexRv -conv -ddr <ddr> -nex <nex> - convert <ddr> to <nex> - remove coresight formatter frame\n");
+  printf("  NexRv -conv -ddr <ddr> -nex <nex> [-atid <id>] - convert <ddr> to <nex> - remove coresight formatter frame\n");
   printf("  NexRv -diff -pcseq <pcs> -pcout <pco> - compare <pcs> with <pco>\n");
 #if WITH_EXT
   printf("  NexRv -ext ... - extra processing (use -ext only to display extra usage)\n");
@@ -189,6 +190,7 @@ static int usage(const char *err)
   printf("  -stat|-full|-all|-msg|-none - verbose level\n");
   printf("  -nsrc [<num>]               - number of source bits <num> (default no source field)\n");
   printf("  -srcid [<srcid>]            - enable decoding a specific hart\n");
+  printf("  -atid [<id>]                - decoded the trace formatter of the atid\n");
 
 #if 0
   printf("sizeof(unsigned int) = %d\n",       sizeof(unsigned int));
@@ -343,11 +345,16 @@ int main(int argc, char *argv[])
       }
     }
     else
-    if (argc == 6 && strcmp(argv[2], "-ddr") == 0)
+    if (argc >= 6 && strcmp(argv[2], "-ddr") == 0)
     {
-       // -conv -ddr <ddr> -nex <nex>
+       // -conv -ddr <ddr> -nex <nex> [-atid <id>]
       if (strcmp(argv[4], "-nex") == 0)
       {
+        if (argc == 8 && strcmp(argv[6], "-atid") == 0 && sscanf(argv[7], "%d", &conf_atid) == 1 )
+        {
+          printf("NexRv/atid: %d\n", conf_atid);
+        }
+
         // Syntax correct - open all files
         err = NULL;
 
