@@ -43,6 +43,22 @@
 
 extern int conf_atid;
 
+static const char *branchs[] = {
+  "beq", "bne", "beqz", "bnez", "c.beqz", "c.bnez",
+  "blt", "bltu", "ble", "blez", "bleu", "bltz",
+  "bge", "bgeu", "bgt", "bgtu" "bgtz", "bgez",
+};
+
+int CheckBranch(const char *instr)
+{
+  for (int i = 0; i < sizeof(branchs) /  sizeof(branchs[0]); i++)
+  {
+    if (strncmp(instr, branchs[i], strlen(branchs[i])) == 0)
+      return 1;
+  }
+  return 0;
+}
+
 typedef struct FORMATTER_DECODE_BUF
 {
     unsigned char id;
@@ -205,29 +221,31 @@ int ConvGnuObjdump(FILE *fObjd, FILE *fPcInfo)
       printf("addr=0x%lX,code=0x%X,size=%d,instr=%s\n", addr, code, size, instr);
     }
 
+    // Here we need to consider compressed instructions
+    int opt = 0;
+    if (instr[0] == 'c' && instr[1] == '.') opt = 2;
     // Determine instruction type based on opcode of instruction
     const char *iType = "L";
-    if (instr[0] == 'j' || (instr[0] == 'b' && instr[4] != 'i'))
-      // That 'i' for for bseti/bclri/bexti/binvi - see https://github.com/riscv/riscv-opcodes/blob/master/rv32_zbs
+    if (instr[opt] == 'j' || instr[opt] == 'b')
     {
       // "j <a>" or "jal <r>,<a>" or "jr <r>" or "jalr <r>"
       // "b?? ...<a>
-      if (instr[0] =='j' && instr[1] == 'r')
+      if (instr[opt] =='j' && instr[opt + 1] == 'r')
       {
         // jr does not have an address
         iType = "JI"; // Jump indirect
       }
       else
-      if (instr[0] == 'j' && instr[1] == 'a' && instr[3] == 'r')
+      if (instr[opt] == 'j' && instr[opt + 1] == 'a' && instr[opt + 3] == 'r')
       {
         // jalr does not have an adrress either
         iType = "CI"; // Call indirect
       }
       else
       {
-        if (instr[0] == 'b')                    iType = "BD"; // Branch direct
-        if (instr[0] == 'j' && instr[1] != 'a') iType = "JD"; // Jump direct
-        if (instr[0] == 'j' && instr[1] == 'a') iType = "CD"; // Call direct
+        if (instr[opt] == 'b' && CheckBranch(instr))    iType = "BD"; // Branch direct
+        if (instr[opt] == 'j' && instr[opt + 1] != 'a') iType = "JD"; // Jump direct
+        if (instr[opt] == 'j' && instr[opt + 1] == 'a') iType = "CD"; // Call direct
       }
     }
     else
