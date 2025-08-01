@@ -232,9 +232,9 @@ int main(int argc, char *argv[])
       opt = 4;
     }
 
-    if (argc > opt + 1 && strcmp(argv[opt], "-nsrc") == 0 && sscanf(argv[opt+1], "%d", &conf_nSrc) == 1)
+    if (argc > opt + 1 && strcmp(argv[opt], "-nsrc") == 0 && sscanf(argv[opt+1], "%i", &conf_nSrc) == 1)
     {
-      printf("NexRv/nSrc: %d\n", conf_nSrc);
+      printf("NexRv/nSrc: 0x%x\n", conf_nSrc);
       opt += 2;
     }
 
@@ -350,9 +350,9 @@ int main(int argc, char *argv[])
        // -conv -ddr <ddr> -nex <nex> [-atid <id>]
       if (strcmp(argv[4], "-nex") == 0)
       {
-        if (argc == 8 && strcmp(argv[6], "-atid") == 0 && sscanf(argv[7], "%d", &conf_atid) == 1 )
+        if (argc == 8 && strcmp(argv[6], "-atid") == 0 && sscanf(argv[7], "%i", &conf_atid) == 1 )
         {
-          printf("NexRv/atid: %d\n", conf_atid);
+          printf("NexRv/atid: 0x%x\n", conf_atid);
         }
 
         // Syntax correct - open all files
@@ -541,15 +541,15 @@ int main(int argc, char *argv[])
     if (fOut == NULL) return error("Cannot create PCOUT file");
 
     int opt = 7;
-    if (argc > opt + 1 && strcmp(argv[opt], "-nsrc") == 0 && sscanf(argv[opt+1], "%d", &conf_nSrc) == 1)
+    if (argc > opt + 1 && strcmp(argv[opt], "-nsrc") == 0 && sscanf(argv[opt+1], "%i", &conf_nSrc) == 1)
     {
-      printf("NexRv/nSrc: %d\n", conf_nSrc);
+      printf("NexRv/nSrc: 0x%x\n", conf_nSrc);
       opt += 2;
     }
 
-    if (argc > opt + 1 && strcmp(argv[opt], "-srcid") == 0 && sscanf(argv[opt+1], "%d", &conf_srcid) == 1)
+    if (argc > opt + 1 && strcmp(argv[opt], "-srcid") == 0 && sscanf(argv[opt+1], "%i", &conf_srcid) == 1)
     {
-      printf("NexRv/srcid: %d\n", conf_srcid);
+      printf("NexRv/srcid: 0x%x\n", conf_srcid);
       opt += 2;
     }
 
